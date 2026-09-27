@@ -9,7 +9,14 @@ fi
 
 service=$1
 email=$2
-cloudflare_credentials=${3:-}
+default_cloudflare_credentials=/root/.secrets/certbot/cloudflare.ini
+if [[ $# -eq 3 ]]; then
+  cloudflare_credentials=$3
+elif [[ -f $default_cloudflare_credentials ]]; then
+  cloudflare_credentials=$default_cloudflare_credentials
+else
+  cloudflare_credentials=
+fi
 case $service in
   api) domain=api.legacyhosting.xyz ;;
   panel) domain=panel.legacyhosting.xyz ;;

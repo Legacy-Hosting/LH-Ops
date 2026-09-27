@@ -99,17 +99,19 @@ else
   fail "no private address belongs to $private_cidr"
 fi
 
-for command in certbot curl git jq nginx node openssl pm2 pnpm python3 sha256sum tar; do
+for command in certbot curl fail2ban-client git jq nginx node openssl pm2 pnpm python3 sha256sum tar ufw; do
   if command -v "$command" >/dev/null 2>&1; then
     pass "$command is installed"
   else
     fail "$command is not installed"
   fi
 done
-if python3 -c 'import certbot_dns_cloudflare' >/dev/null 2>&1; then
-  pass "Certbot Cloudflare DNS plugin is installed"
+if snap list certbot >/dev/null 2>&1 && \
+   snap list certbot-dns-cloudflare >/dev/null 2>&1 && \
+   certbot plugins 2>/dev/null | grep -q 'dns-cloudflare'; then
+  pass "Certbot and its Cloudflare DNS plugin are installed through Snap"
 else
-  fail "Certbot Cloudflare DNS plugin is not installed"
+  fail "Certbot and its Cloudflare DNS plugin must be installed through Snap"
 fi
 
 if [[ $(node --version 2>/dev/null || true) == v24.21.0 ]]; then
@@ -128,13 +130,23 @@ else
   fail "PM2 7.0.4 is required"
 fi
 
-for unit in nginx do-agent; do
+for unit in nginx do-agent fail2ban; do
   if systemctl is-enabled --quiet "$unit" && systemctl is-active --quiet "$unit"; then
     pass "$unit is enabled and active"
   else
     fail "$unit must be enabled and active"
   fi
 done
+if ufw status | head -n 1 | grep -q '^Status: active$'; then
+  pass "UFW is active"
+else
+  fail "UFW must be active"
+fi
+if fail2ban-client status sshd >/dev/null 2>&1; then
+  pass "Fail2Ban sshd jail is active"
+else
+  fail "Fail2Ban sshd jail must be active"
+fi
 if systemctl is-enabled --quiet unattended-upgrades; then
   pass "unattended-upgrades is enabled"
 else
@@ -145,10 +157,10 @@ if systemctl is-enabled --quiet pm2-root; then
 else
   fail "pm2-root must be enabled"
 fi
-if systemctl is-enabled --quiet certbot.timer && systemctl is-active --quiet certbot.timer; then
-  pass "certbot.timer is enabled and active"
+if systemctl is-active --quiet snap.certbot.renew.timer; then
+  pass "snap.certbot.renew.timer is active"
 else
-  fail "certbot.timer must be enabled and active"
+  fail "snap.certbot.renew.timer must be active"
 fi
 
 memory_kib=$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)
@@ -185,6 +197,15 @@ for directory_mode in /etc/legacy-hosting:700 /opt/legacy-hosting:755; do
 done
 
 if [[ $mode == --deploy-ready ]]; then
+  cloudflare_credentials=/root/.secrets/certbot/cloudflare.ini
+  credentials_mode=$(stat -c '%a' "$cloudflare_credentials" 2>/dev/null || true)
+  credentials_owner=$(stat -c '%u:%g' "$cloudflare_credentials" 2>/dev/null || true)
+  if [[ -f $cloudflare_credentials && ! -L $cloudflare_credentials && \
+        $credentials_mode == 600 && $credentials_owner == 0:0 ]]; then
+    pass "$cloudflare_credentials is protected"
+  else
+    fail "$cloudflare_credentials must be a root-owned, mode-600 regular file"
+  fi
   verifier=/usr/local/lib/legacy-hosting-ops/verify-release-artifact.sh
   if [[ -x $verifier && ! -L $verifier ]]; then
     pass "trusted release verifier is installed"

@@ -43,7 +43,6 @@ All five service hosts use Ubuntu 26.04 LTS and the same pinned runtime baseline
 
 ```bash
 sudo scripts/bootstrap-ubuntu.sh
-sudo scripts/install-node-runtime.sh
 sudo scripts/install-digitalocean-monitoring.sh
 sudo scripts/install-release-verifier.sh SERVICE PUBLIC_KEY EXPECTED_SHA256_FINGERPRINT
 sudo scripts/audit-service-host.sh SERVICE
@@ -55,9 +54,29 @@ backup prerequisites have been installed. Install both the API and Agent keys
 on the API host, and both the Panel and Discord keys on the Panel host.
 
 The bootstrap requires Ubuntu 26.04 LTS, installs Certbot with its Nginx and
-Cloudflare DNS plugins,
-and activates at least 2 GiB of persistent swap for the 1 GiB service Droplets.
-The runtime installer downloads the [official Node.js 24.21.0 release](https://nodejs.org/dist/v24.21.0/) and verifies it against its official SHA-256 manifest before installing pnpm 12.4.1 and PM2 7.0.4. The monitoring installer follows DigitalOcean's [signed repository installation](https://docs.digitalocean.com/products/monitoring/how-to/install-metrics-agent-repository/), verifies the expected signing-key fingerprint, installs `do-agent`, and requires the service to be active. Firewall and SSH policy remain a separate reviewed operation because applying an incorrect rule remotely can lock out the server.
+Cloudflare DNS plugins, and activates at least 2 GiB of persistent swap for the
+1 GiB service Droplets. It detects the effective SSH port before enabling UFW,
+opens SSH plus HTTP/HTTPS, installs an isolated Fail2Ban SSH jail, and delegates
+the runtime installation to `install-node-runtime.sh`. The runtime installer
+downloads the [official Node.js 24.21.0 release](https://nodejs.org/dist/v24.21.0/)
+and verifies it against its official SHA-256 manifest before installing the
+bundled npm, pnpm 12.4.1, and PM2 7.0.4. Existing UFW rules are preserved.
+Set `LH_UFW_ALLOW_WEB=false` only for a host that must not accept HTTP/HTTPS,
+and pass additional comma-separated TCP ports through
+`LH_UFW_EXTRA_TCP_PORTS`. The monitoring installer follows DigitalOcean's
+[signed repository installation](https://docs.digitalocean.com/products/monitoring/how-to/install-metrics-agent-repository/),
+verifies the expected signing-key fingerprint, installs `do-agent`, and
+requires the service to be active.
+
+Once LH-Agent is enrolled, every heartbeat reports current Fail2Ban SSH bans
+through the node's nonce-protected HMAC identity. LH-API stores the shared
+denylist and returns its desired state to every agent. Agents reconcile only
+UFW rules carrying the `Legacy Hosting global ban` comment, so unrelated local
+firewall rules remain untouched. Removing an address under **Admin → Firewall**
+causes online agents to remove both the shared UFW rule and a matching local
+Fail2Ban ban on their next heartbeat. Private, loopback, link-local, multicast,
+and documentation addresses are rejected by the API to prevent a compromised
+node from blocking internal infrastructure globally.
 
 ## Capacity and latency tests
 

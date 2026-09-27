@@ -29,13 +29,23 @@ Clone a reviewed LH-Ops revision on each host, then run:
 
 ```bash
 sudo scripts/bootstrap-ubuntu.sh
-sudo scripts/install-node-runtime.sh
 sudo scripts/install-digitalocean-monitoring.sh
 sudo scripts/install-release-verifier.sh SERVICE PUBLIC_KEY EXPECTED_SHA256_FINGERPRINT
 sudo scripts/audit-service-host.sh SERVICE
 ```
 
-The audit must pass before secrets or release archives are copied to the host.
+Run the host setup from an active SSH session or the DigitalOcean Recovery
+Console. It discovers the effective SSH port and permits it before UFW is
+enabled, preserves existing firewall rules, opens ports 80 and 443, and starts
+the Fail2Ban SSH jail. The audit must pass before secrets or release archives
+are copied to the host.
+
+After the node is enrolled in LH-Agent and the firewall migration has been
+applied to LH-API, verify that its heartbeat appears in Panel. Fail2Ban keeps
+the immediate local response; LH-Agent then reports public banned addresses to
+LH-API and reconciles the global UFW denylist on each heartbeat. Administrative
+unbans are performed only from **Admin → Firewall** so they propagate to every
+online server and are recorded in the audit log.
 
 ## 3. Prepare dependencies
 
@@ -61,15 +71,21 @@ dns_cloudflare_api_token = replace-with-scoped-token
 
 Protect the file with mode `0600`. Certbot stores its path for unattended
 renewal, so retain it until that certificate is replaced with another renewal
-method.
+method. The standard location on every service host is
+`/root/.secrets/certbot/cloudflare.ini`. Its parent directories must use mode
+`0700`; never apply a recursive file mode such as `chmod -R 640` because
+directories require the execute bit. The bootstrap repairs these modes without
+reading or replacing the token.
 
 ```bash
 sudo scripts/issue-service-certificate.sh \
   SERVICE \
-  angel@legacyhosting.xyz \
-  /etc/legacy-hosting/cloudflare-acme.ini
+  angel@legacyhosting.xyz
 sudo scripts/audit-service-host.sh SERVICE --deploy-ready
 ```
+
+The certificate script automatically uses the standard Cloudflare credentials
+file when it exists. An explicit third argument can still select another file.
 
 If the public record already resolves directly to the new host, omit the
 credentials argument to use HTTP-01. The deployed Nginx sites preserve that

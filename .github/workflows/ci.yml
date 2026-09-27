@@ -26,6 +26,8 @@ jobs:
         run: bash tests/backup-policy.sh
       - name: Check load-test safety policy
         run: bash tests/load-test-policy.sh
+      - name: Check Node host security policy
+        run: bash tests/node-host-policy.sh
       - name: Exercise release signing and verification
         run: sudo bash tests/release-signing-integration.sh
       - name: Exercise encrypted release-key generation
