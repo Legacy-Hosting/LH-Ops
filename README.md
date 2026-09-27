@@ -20,6 +20,17 @@ Never commit Terraform state, private inventory, `.env` files, tokens, certifica
 The ordered production procedure is in
 [`docs/production-rollout.md`](docs/production-rollout.md).
 
+## Release signatures
+
+New production archives use a detached Ed25519 signature in addition to their
+SHA-256 manifest. `scripts/sign-release-artifact.sh` creates the signature and
+immediately verifies it against the derived public key;
+`scripts/verify-release-artifact.sh` validates the pinned public key, checksum,
+filename, and archive before extraction. Each service uses an independent
+private key held by its release workflow. Key generation, custody, rotation,
+and server provisioning are documented in
+[`docs/release-signing.md`](docs/release-signing.md).
+
 ## Service host bootstrap
 
 All five service hosts use Ubuntu 26.04 LTS and the same pinned runtime baseline. From a reviewed checkout on each new Droplet, run:
