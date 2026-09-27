@@ -44,6 +44,48 @@ printf 'signed release test\n' > "$archive"
 "$repository_root/scripts/sign-release-artifact.sh" "$decrypted" "$archive" "$checksum" "$signature"
 "$repository_root/scripts/verify-release-artifact.sh" "$public_key" "$archive" "$checksum" "$signature"
 
+"$repository_root/scripts/configure-release-signing-secret.sh" api "$encrypted" "$identity" "$public_key" "$fingerprint_file"
+
+if LH_RELEASE_SECRET_CONFIRM=incorrect "$repository_root/scripts/configure-release-signing-secret.sh" api "$encrypted" "$identity" "$public_key" "$fingerprint_file" --apply >/dev/null 2>&1; then
+  echo "GitHub secret configuration did not require exact confirmation" >&2
+  exit 1
+fi
+
+fake_bin="$workspace/fake-bin"
+mkdir "$fake_bin"
+cat > "$fake_bin/gh" <<'SCRIPT'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+case "$1 $2" in
+  "auth status")
+    exit 0
+    ;;
+  "repo view")
+    printf '%s\n' "$GH_TEST_REPOSITORY"
+    ;;
+  "secret set")
+    printf '%s\n' "$*" > "$GH_TEST_LOG"
+    cat > "$GH_TEST_BODY"
+    ;;
+  "secret list")
+    printf '%s\n' RELEASE_SIGNING_PRIVATE_KEY_B64
+    ;;
+  *)
+    echo "Unexpected gh invocation: $*" >&2
+    exit 1
+    ;;
+esac
+SCRIPT
+chmod 0755 "$fake_bin/gh"
+export GH_TEST_REPOSITORY=Legacy-Hosting/LH-API
+export GH_TEST_LOG="$workspace/gh.log"
+export GH_TEST_BODY="$workspace/secret.body"
+confirmation="Legacy-Hosting/LH-API:$expected_fingerprint"
+PATH="$fake_bin:$PATH" LH_RELEASE_SECRET_CONFIRM="$confirmation" "$repository_root/scripts/configure-release-signing-secret.sh" api "$encrypted" "$identity" "$public_key" "$fingerprint_file" --apply
+grep -Fqx 'secret set RELEASE_SIGNING_PRIVATE_KEY_B64 --repo Legacy-Hosting/LH-API' "$GH_TEST_LOG"
+base64 -d "$GH_TEST_BODY" > "$workspace/configured-private.pem"
+cmp "$decrypted" "$workspace/configured-private.pem"
+
 if "$repository_root/scripts/generate-release-key-material.sh" api "$recipient" "$key_directory" >/dev/null 2>&1; then
   echo "Existing release key material was overwritten" >&2
   exit 1

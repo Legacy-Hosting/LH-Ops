@@ -27,21 +27,24 @@ workspace. It creates `lh-api-release-private.pem.age`, `lh-api.pub`, and
 `lh-api.pub.sha256`; refuses insecure output-directory permissions, symlinks,
 and overwrites; and signs a challenge before accepting the generated key.
 
-After independently reviewing the public-key fingerprint, decrypt the private
-key only on the trusted operator machine and pipe its base64 representation
-directly into the repository secret:
+After independently reviewing the public-key fingerprint, validate the
+encrypted private key against that public key without changing GitHub:
 
 ```bash
-temporary_key=$(mktemp)
-trap 'rm -f -- "$temporary_key"' EXIT
-chmod 0600 "$temporary_key"
-age --decrypt --identity /offline/recovery-identity.txt \
-  --output "$temporary_key" \
-  /encrypted/offline/release-keys/lh-api-release-private.pem.age
-base64 -w0 < "$temporary_key" | \
-  gh secret set RELEASE_SIGNING_PRIVATE_KEY_B64 \
-    --repo Legacy-Hosting/LH-API
+scripts/configure-release-signing-secret.sh \
+  api \
+  /encrypted/offline/release-keys/lh-api-release-private.pem.age \
+  /offline/recovery-identity.txt \
+  /encrypted/offline/release-keys/lh-api.pub \
+  /encrypted/offline/release-keys/lh-api.pub.sha256
 ```
+
+The check prints the exact `LH_RELEASE_SECRET_CONFIRM` value. Review it, then
+repeat the command with `--apply` and that environment value. The script
+decrypts through a pipe, confirms the private and public keys match, derives
+the fixed service repository, and sends only the base64 key to
+`RELEASE_SIGNING_PRIVATE_KEY_B64`. It never writes the plaintext private key
+to disk.
 
 Repeat with a different key for every service. Keep each encrypted recovery
 copy outside GitHub and production hosts. Never commit private keys or

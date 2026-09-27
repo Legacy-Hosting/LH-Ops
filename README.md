@@ -33,6 +33,9 @@ and server provisioning are documented in
 `scripts/generate-release-key-material.sh` creates one independently encrypted
 recovery key, public key, and reviewed fingerprint at a time without leaving a
 plaintext private key in the destination.
+`scripts/configure-release-signing-secret.sh` validates that material and
+requires an explicit repository-and-fingerprint confirmation before streaming
+the private key into the correct GitHub Actions secret.
 
 ## Service host bootstrap
 
