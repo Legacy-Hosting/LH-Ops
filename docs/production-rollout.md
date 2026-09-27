@@ -67,6 +67,21 @@ sudo node scripts/provision-status-environment.mjs
 The command refuses to overwrite an existing environment file. Back up and
 review an existing `/etc/legacy-hosting/status.env` instead of deleting it.
 
+For the first SSO installation, create the isolated database from the existing
+API host and transfer the generated mode-`0600` database fragment directly to
+the SSO host. Then generate SSO secrets and the private JWKS on that host:
+
+```bash
+sudo scripts/provision-sso-database.sh
+sudo node scripts/provision-sso-environment.mjs /root/sso-database.env
+```
+
+The database script refuses to alter an existing `legacyhosting_sso` schema or
+user. The environment script consumes and deletes its database transfer file,
+and writes separate protected fragments for API, Hub, and Discord below
+`/etc/legacy-hosting/service-fragments`. Transfer each fragment only to its
+own service host and delete the transferred copy after it has been consumed.
+
 Do not place database credentials on Panel, Hub, Status, or Discord.
 
 ## 4. Issue origin certificates
