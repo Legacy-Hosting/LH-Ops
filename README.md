@@ -40,6 +40,20 @@ Cloudflare DNS plugins,
 and activates at least 2 GiB of persistent swap for the 1 GiB service Droplets.
 The runtime installer downloads the [official Node.js 24.21.0 release](https://nodejs.org/dist/v24.21.0/) and verifies it against its official SHA-256 manifest before installing pnpm 12.4.1 and PM2 7.0.4. The monitoring installer follows DigitalOcean's [signed repository installation](https://docs.digitalocean.com/products/monitoring/how-to/install-metrics-agent-repository/), verifies the expected signing-key fingerprint, installs `do-agent`, and requires the service to be active. Firewall and SSH policy remain a separate reviewed operation because applying an incorrect rule remotely can lock out the server.
 
+## Capacity and latency tests
+
+`scripts/load-http.mjs` provides dependency-free, rate-limited HTTP smoke and
+staging-capacity profiles with readiness assertions, p50/p95/p99 latency,
+throughput, status/error counts, and machine-readable threshold reports.
+Production hosts accept only the bounded smoke profile and require exact
+hostname confirmation. `scripts/load-test-mysql.sh` runs a separately
+confirmed, TLS-verified, SELECT-only database workload with a dedicated
+read-only account and captures before/after Performance Schema evidence.
+
+Use the procedure and stop conditions in
+[`docs/capacity-testing.md`](docs/capacity-testing.md). Generated reports can
+contain topology and statement digests and must stay outside Git.
+
 ## Database backups
 
 API and SSO use separate root-owned backup environment files:

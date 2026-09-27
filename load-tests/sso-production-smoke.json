@@ -1,0 +1,47 @@
+{
+  "name": "sso-production-smoke",
+  "mode": "smoke",
+  "baseUrl": "https://auth.legacyhosting.xyz",
+  "durationSeconds": 60,
+  "concurrency": 4,
+  "maxRequestsPerSecond": 4,
+  "timeoutMs": 3000,
+  "routes": [
+    {
+      "name": "readiness",
+      "path": "/health",
+      "weight": 2,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "status": "ok",
+        "database": "connected"
+      }
+    },
+    {
+      "name": "service",
+      "path": "/",
+      "weight": 1,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "service": "LH-SSO",
+        "status": "operational"
+      }
+    },
+    {
+      "name": "discovery",
+      "path": "/.well-known/openid-configuration",
+      "weight": 1,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "issuer": "https://auth.legacyhosting.xyz"
+      }
+    }
+  ],
+  "thresholds": {
+    "minimumSuccessRate": 0.999,
+    "maximumP95Ms": 300,
+    "maximumP99Ms": 1000,
+    "maximumNetworkErrors": 0,
+    "minimumRequestsPerSecond": 3.2
+  }
+}

@@ -175,8 +175,11 @@ grep -qx 'original-secret' "$persistent_root/var/secrets/settings.key"
 grep -qx 'original-upload' "$persistent_root/var/uploads/customer.txt"
 grep -q '^stop ci-application-web ci-application-worker$' "$pm2_log"
 grep -q '^restart ci-application-web ci-application-worker$' "$pm2_log"
-jq -e 'select(.action == "backup.create" and .result == "succeeded")' "$audit_log" >/dev/null
-jq -e 'select(.action == "restore.stage" and .result == "succeeded")' "$audit_log" >/dev/null
-jq -e 'select(.action == "restore.apply" and .result == "succeeded")' "$audit_log" >/dev/null
+jq -s -e 'any(.[]; .action == "backup.create" and .result == "succeeded")' \
+  "$audit_log" >/dev/null
+jq -s -e 'any(.[]; .action == "restore.stage" and .result == "succeeded")' \
+  "$audit_log" >/dev/null
+jq -s -e 'any(.[]; .action == "restore.apply" and .result == "succeeded")' \
+  "$audit_log" >/dev/null
 
 echo "Persistent-file backup, symlink rejection, staging, and restore passed."

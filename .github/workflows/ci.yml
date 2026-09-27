@@ -15,16 +15,25 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.21.0
       - name: Check shell syntax
         run: bash -n scripts/*.sh
       - name: Run ShellCheck
         run: shellcheck --severity=error scripts/*.sh
       - name: Check backup security policy
         run: bash tests/backup-policy.sh
+      - name: Check load-test safety policy
+        run: bash tests/load-test-policy.sh
       - name: Exercise encrypted backup and restore flow
         run: sudo bash tests/backup-integration.sh
       - name: Exercise persistent-file backup and staged restore
         run: sudo bash tests/application-backup-integration.sh
+      - name: Test HTTP capacity harness
+        run: node --test tests/*.test.mjs
+      - name: Exercise bounded read-only MySQL load test
+        run: sudo bash tests/mysql-load-integration.sh
       - name: Check executable scripts
         run: test "$(find scripts -maxdepth 1 -type f -name '*.sh' ! -perm -111 | wc -l)" -eq 0
       - name: Reject committed secret-shaped files

@@ -1,0 +1,28 @@
+{
+  "name": "api-staging-capacity",
+  "mode": "capacity",
+  "baseUrl": "http://10.110.0.8:8080",
+  "durationSeconds": 120,
+  "concurrency": 20,
+  "maxRequestsPerSecond": 100,
+  "timeoutMs": 3000,
+  "routes": [
+    {
+      "name": "readiness",
+      "path": "/health",
+      "weight": 1,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "status": "ok",
+        "database": "connected"
+      }
+    }
+  ],
+  "thresholds": {
+    "minimumSuccessRate": 0.999,
+    "maximumP95Ms": 250,
+    "maximumP99Ms": 750,
+    "maximumNetworkErrors": 0,
+    "minimumRequestsPerSecond": 90
+  }
+}

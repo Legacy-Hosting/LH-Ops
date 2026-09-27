@@ -1,0 +1,37 @@
+{
+  "name": "api-production-smoke",
+  "mode": "smoke",
+  "baseUrl": "https://api.legacyhosting.xyz",
+  "durationSeconds": 60,
+  "concurrency": 4,
+  "maxRequestsPerSecond": 4,
+  "timeoutMs": 3000,
+  "routes": [
+    {
+      "name": "readiness",
+      "path": "/health",
+      "weight": 3,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "status": "ok",
+        "database": "connected"
+      }
+    },
+    {
+      "name": "metadata",
+      "path": "/api/v1",
+      "weight": 1,
+      "expectedStatuses": [200],
+      "jsonAssertions": {
+        "version": "v1"
+      }
+    }
+  ],
+  "thresholds": {
+    "minimumSuccessRate": 0.999,
+    "maximumP95Ms": 300,
+    "maximumP99Ms": 1000,
+    "maximumNetworkErrors": 0,
+    "minimumRequestsPerSecond": 3.2
+  }
+}

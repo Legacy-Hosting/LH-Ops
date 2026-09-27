@@ -10,3 +10,4 @@ crash.log
 *.pem
 *.key
 inventory/hosts.yml
+load-test-reports/

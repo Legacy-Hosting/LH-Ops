@@ -7,6 +7,8 @@
 - future Terraform and Ansible code;
 - DigitalOcean/VPC/firewall and Monitoring Agent policy;
 - generic age-encrypted MySQL backup, verified off-site retention, and audited restore-drill tooling;
+- opt-in encrypted backup and staged restore of customer persistent files;
+- bounded cross-service HTTP/MySQL capacity tooling, safety policy, and test reports;
 - promotion of signed-off LH-Agent releases to the API distribution directory;
 - disaster-recovery orchestration and cross-service smoke checks.
 
