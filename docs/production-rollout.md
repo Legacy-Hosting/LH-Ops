@@ -179,8 +179,25 @@ every deployment.
 
 ## 6. Cut over and retire Platform
 
-Move one public DNS record at a time. Verify health, authentication, browser
-flows, deploy commands, logs, monitoring, certificate renewal, and rollback
-before moving the next record. Keep the previous Platform deployment available
-until all split services have completed an observation window and a restore
-drill. Archive LH-Platform only after that checkpoint.
+The infrastructure names under `legacyh.fyi` own the direct A and AAAA records
+and remain DNS-only. Public service names under `legacyhosting.xyz` must use
+proxied CNAME records only:
+
+| Public CNAME | Target |
+| --- | --- |
+| `api.legacyhosting.xyz` | `ams3.api-01.legacyh.fyi` |
+| `panel.legacyhosting.xyz` | `ams3.panel-01.legacyh.fyi` |
+| `auth.legacyhosting.xyz` | `ams3.sso-01.legacyh.fyi` |
+| `hub.legacyhosting.xyz` | `ams3.hub-01.legacyh.fyi` |
+| `status.legacyhosting.xyz` | `fra1.status-01.legacyh.fyi` |
+
+Do not create A or AAAA records for these `legacyhosting.xyz` service names.
+Cloudflare's proxied CNAME flattening can still make public DNS queries return
+Cloudflare A and AAAA addresses; that is expected and does not change the
+configured record type.
+
+Move one public CNAME at a time. Verify health, authentication, browser flows,
+deploy commands, logs, monitoring, certificate renewal, and rollback before
+moving the next record. Keep the previous Platform deployment available until
+all split services have completed an observation window and a restore drill.
+Archive LH-Platform only after that checkpoint.
