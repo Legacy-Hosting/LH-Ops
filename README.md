@@ -39,12 +39,14 @@ All five service hosts use Ubuntu 26.04 LTS and the same pinned runtime baseline
 sudo scripts/bootstrap-ubuntu.sh
 sudo scripts/install-node-runtime.sh
 sudo scripts/install-digitalocean-monitoring.sh
+sudo scripts/install-release-verifier.sh SERVICE PUBLIC_KEY EXPECTED_SHA256_FINGERPRINT
 sudo scripts/audit-service-host.sh SERVICE
 ```
 
 Replace `SERVICE` with `api`, `panel`, `sso`, `hub`, or `status`. Add
 `--deploy-ready` after certificates, protected environment files, and database
-backup prerequisites have been installed.
+backup prerequisites have been installed. Install both the API and Agent keys
+on the API host, and both the Panel and Discord keys on the Panel host.
 
 The bootstrap requires Ubuntu 26.04 LTS, installs Certbot with its Nginx and
 Cloudflare DNS plugins,
@@ -199,6 +201,7 @@ LH-Agent release on the API server with:
 sudo scripts/install-agent-distribution.sh \
   /path/to/lh-agent-1.0.32.tar.gz \
   /path/to/lh-agent-1.0.32.tar.gz.sha256 \
+  /path/to/lh-agent-1.0.32.tar.gz.sig \
   1.0.32
 ```
 

@@ -29,6 +29,51 @@ printf 'immutable release payload\n' > "$archive"
 "$repository_root/scripts/verify-release-artifact.sh" \
   "$public_key" "$archive" "$checksum" "$signature"
 
+install_root="$workspace/install-root"
+mkdir -p "$install_root"
+fingerprint=$(openssl pkey -pubin -in "$public_key" -outform DER 2>/dev/null | \
+  sha256sum | cut -d ' ' -f 1)
+LH_INSTALL_ROOT="$install_root" \
+  "$repository_root/scripts/install-release-verifier.sh" \
+  api "$public_key" "$fingerprint"
+installed_verifier="$install_root/usr/local/lib/legacy-hosting-ops/verify-release-artifact.sh"
+installed_key="$install_root/etc/legacy-hosting/release-keys/lh-api.pub"
+[[ -x $installed_verifier && -f $installed_key ]]
+"$installed_verifier" "$installed_key" "$archive" "$checksum" "$signature"
+
+other_fingerprint=$(openssl pkey -pubin -in "$other_public_key" -outform DER 2>/dev/null | \
+  sha256sum | cut -d ' ' -f 1)
+if LH_INSTALL_ROOT="$install_root" \
+  "$repository_root/scripts/install-release-verifier.sh" \
+  api "$other_public_key" "$other_fingerprint" >/dev/null 2>&1; then
+  echo "An installed release trust key was rotated without confirmation" >&2
+  exit 1
+fi
+
+LH_INSTALL_ROOT="$install_root" \
+  "$repository_root/scripts/install-release-verifier.sh" \
+  agent "$public_key" "$fingerprint"
+agent_source="$workspace/agent-source"
+agent_version=9.8.7
+agent_archive="$workspace/lh-agent-$agent_version.tar.gz"
+agent_checksum="$workspace/lh-agent-$agent_version.tar.gz.sha256"
+agent_signature="$workspace/lh-agent-$agent_version.tar.gz.sig"
+mkdir -p "$agent_source/lh-agent-$agent_version/ops/scripts"
+printf '#!/usr/bin/env bash\necho installed\n' > \
+  "$agent_source/lh-agent-$agent_version/ops/scripts/install-node-agent.sh"
+tar -C "$agent_source" -czf "$agent_archive" "lh-agent-$agent_version"
+(cd "$workspace" && sha256sum "$(basename "$agent_archive")" > \
+  "$(basename "$agent_checksum")")
+"$repository_root/scripts/sign-release-artifact.sh" \
+  "$private_key" "$agent_archive" "$agent_checksum" "$agent_signature"
+LH_INSTALL_ROOT="$install_root" \
+  "$repository_root/scripts/install-agent-distribution.sh" \
+  "$agent_archive" "$agent_checksum" "$agent_signature" "$agent_version"
+agent_current="$install_root/var/lib/legacy-hosting/agent-distributions/current"
+[[ -L $agent_current ]]
+[[ -f $agent_current/lh-agent-runtime.tar.gz ]]
+[[ -x $agent_current/install-node-agent.sh ]]
+
 if "$repository_root/scripts/sign-release-artifact.sh" \
   "$private_key" "$archive" "$checksum" "$signature" >/dev/null 2>&1; then
   echo "An existing immutable signature was overwritten" >&2

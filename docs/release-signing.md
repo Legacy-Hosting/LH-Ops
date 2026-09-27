@@ -46,7 +46,7 @@ Before extraction or package installation, the target server invokes:
 
 ```bash
 scripts/verify-release-artifact.sh \
-  /etc/legacy-hosting/release-keys/LH-API.pub \
+  /etc/legacy-hosting/release-keys/lh-api.pub \
   lh-api-1.2.1.tar.gz \
   SHA256/lh-api-1.2.1.tar.gz.sha256 \
   SIGNATURES/lh-api-1.2.1.tar.gz.sig
@@ -56,3 +56,14 @@ Verification rejects symlink inputs, malformed checksum manifests, a checksum
 for another filename, signatures with the wrong size, a mismatched key, and any
 modified archive. Existing unsigned releases remain historical artifacts; do
 not promote them as new production releases.
+
+Provision a reviewed public key and fingerprint idempotently with:
+
+```bash
+sudo scripts/install-release-verifier.sh \
+  api lh-api-release.pub EXPECTED_SHA256_FINGERPRINT
+```
+
+Replacing an installed key requires the explicit one-command confirmation
+printed by the installer. Retain old public keys with the historical release
+records before rotating; an old release cannot be verified by a new key.

@@ -34,6 +34,7 @@ apt-get install -y \
   logrotate \
   mysql-client \
   nginx \
+  openssl \
   python3-certbot-dns-cloudflare \
   python3-certbot-nginx \
   rclone \
@@ -41,6 +42,7 @@ apt-get install -y \
   xz-utils
 
 install -d -m 0700 /etc/legacy-hosting /etc/legacy-hosting/backups
+install -d -m 0755 /etc/legacy-hosting/release-keys
 install -d -m 0700 /etc/legacy-hosting/application-backups \
   /var/backups/legacy-hosting/mysql /var/backups/legacy-hosting/applications \
   /var/lib/legacy-hosting/application-restores

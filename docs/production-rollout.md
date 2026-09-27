@@ -31,6 +31,7 @@ Clone a reviewed LH-Ops revision on each host, then run:
 sudo scripts/bootstrap-ubuntu.sh
 sudo scripts/install-node-runtime.sh
 sudo scripts/install-digitalocean-monitoring.sh
+sudo scripts/install-release-verifier.sh SERVICE PUBLIC_KEY EXPECTED_SHA256_FINGERPRINT
 sudo scripts/audit-service-host.sh SERVICE
 ```
 
@@ -85,8 +86,10 @@ challenge path on HTTP and HTTPS. Both methods configure normal unattended
 6. Migrate passkeys in dry-run mode, then apply and verify the counts.
 7. Change SSO to `OIDC_LOGIN_MODE=passkey` only after browser verification.
 
-Use only versioned archives and matching SHA-256 files from `LH-Releases`.
-Run the service-owned verification script after every deployment.
+Use only versioned archives with matching SHA-256 files and detached Ed25519
+signatures from `LH-Releases`. Deploy scripts verify the service key provisioned
+from LH-Ops before extraction. Run the service-owned verification script after
+every deployment.
 
 ## 6. Cut over and retire Platform
 

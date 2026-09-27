@@ -21,6 +21,7 @@ case $service in
     private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/api.env
     backup_name=api
+    release_keys=(lh-api.pub lh-agent.pub)
     ;;
   panel)
     expected_hostname=ams3-panel-01
@@ -29,6 +30,7 @@ case $service in
     private_cidr=10.110.0.0/20
     environment_file=
     backup_name=
+    release_keys=(lh-panel.pub lh-discord.pub)
     ;;
   sso)
     expected_hostname=ams3-sso-01
@@ -37,6 +39,7 @@ case $service in
     private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/sso.env
     backup_name=sso
+    release_keys=(lh-sso.pub)
     ;;
   hub)
     expected_hostname=ams3-hub-01
@@ -45,6 +48,7 @@ case $service in
     private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/hub.env
     backup_name=
+    release_keys=(lh-hub.pub)
     ;;
   status)
     expected_hostname=fra1-status-01
@@ -53,6 +57,7 @@ case $service in
     private_cidr=10.114.0.0/20
     environment_file=/etc/legacy-hosting/status.env
     backup_name=
+    release_keys=(lh-status.pub)
     ;;
   *) usage ;;
 esac
@@ -94,7 +99,7 @@ else
   fail "no private address belongs to $private_cidr"
 fi
 
-for command in certbot curl git jq nginx node pm2 pnpm python3 sha256sum tar; do
+for command in certbot curl git jq nginx node openssl pm2 pnpm python3 sha256sum tar; do
   if command -v "$command" >/dev/null 2>&1; then
     pass "$command is installed"
   else
@@ -180,6 +185,38 @@ for directory_mode in /etc/legacy-hosting:700 /opt/legacy-hosting:755; do
 done
 
 if [[ $mode == --deploy-ready ]]; then
+  verifier=/usr/local/lib/legacy-hosting-ops/verify-release-artifact.sh
+  if [[ -x $verifier && ! -L $verifier ]]; then
+    pass "trusted release verifier is installed"
+  else
+    fail "trusted release verifier is missing"
+  fi
+  for release_key in "${release_keys[@]}"; do
+    key_path=/etc/legacy-hosting/release-keys/$release_key
+    fingerprint_path=$key_path.sha256
+    key_mode=$(stat -c '%a' "$key_path" 2>/dev/null || true)
+    key_owner=$(stat -c '%u' "$key_path" 2>/dev/null || true)
+    fingerprint_mode=$(stat -c '%a' "$fingerprint_path" 2>/dev/null || true)
+    fingerprint_owner=$(stat -c '%u' "$fingerprint_path" 2>/dev/null || true)
+    expected_fingerprint=
+    fingerprint_name=
+    fingerprint_extra=
+    if [[ -f $fingerprint_path && ! -L $fingerprint_path ]]; then
+      read -r expected_fingerprint fingerprint_name fingerprint_extra < \
+        "$fingerprint_path" || true
+    fi
+    actual_fingerprint=$(openssl pkey -pubin -in "$key_path" -outform DER \
+      2>/dev/null | sha256sum | cut -d ' ' -f 1 || true)
+    if [[ -f $key_path && ! -L $key_path && $key_mode == 644 && \
+          $key_owner == 0 && $fingerprint_mode == 644 && \
+          $fingerprint_owner == 0 && $expected_fingerprint =~ ^[a-f0-9]{64}$ && \
+          $expected_fingerprint == "$actual_fingerprint" && \
+          $fingerprint_name == "$release_key" && -z $fingerprint_extra ]]; then
+      pass "$release_key is pinned and readable"
+    else
+      fail "$release_key must be a root-owned mode-644 public key"
+    fi
+  done
   for certificate_file in fullchain.pem privkey.pem; do
     if [[ -r /etc/letsencrypt/live/$public_domain/$certificate_file ]]; then
       pass "$public_domain $certificate_file is readable"
