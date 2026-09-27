@@ -14,6 +14,11 @@ if [[ ${ID:-} != ubuntu ]]; then
   echo "Ubuntu is required" >&2
   exit 1
 fi
+repository_root=$(cd "$(dirname "$0")/.." && pwd)
+if [[ ! -f $repository_root/logrotate/legacy-hosting ]]; then
+  echo "Missing Legacy Hosting logrotate policy" >&2
+  exit 1
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
@@ -31,6 +36,8 @@ apt-get install -y \
 install -d -m 0700 /etc/legacy-hosting /etc/legacy-hosting/backups
 install -d -m 0700 /var/backups/legacy-hosting/mysql
 install -d -m 0755 /opt/legacy-hosting /var/www
+install -m 0644 "$repository_root/logrotate/legacy-hosting" \
+  /etc/logrotate.d/legacy-hosting
 systemctl enable --now nginx
 systemctl enable unattended-upgrades
 

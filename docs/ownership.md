@@ -7,6 +7,7 @@
 - future Terraform and Ansible code;
 - DigitalOcean/VPC/firewall and Monitoring Agent policy;
 - generic encrypted MySQL backup and restore-drill tooling;
+- promotion of signed-off LH-Agent releases to the API distribution directory;
 - disaster-recovery orchestration and cross-service smoke checks.
 
 ## Service repositories own

@@ -10,6 +10,7 @@ This repository is deliberately not a deployment monolith. Service-specific Ngin
 docs/          Architecture and ownership rules
 env/           Non-secret environment templates
 inventory/     Committed topology without credentials
+logrotate/     Shared retention policy for Legacy Hosting Nginx logs
 scripts/       Shared idempotent operational scripts
 systemd/       Shared systemd unit templates
 ```
@@ -34,3 +35,21 @@ sudo systemctl enable --now lh-mysql-backup@sso.timer
 ```
 
 The timers create encrypted backups below `/var/backups/legacy-hosting/mysql/<name>`. Restore drills always target a new, validated disposable database and remove only that database afterward.
+
+## Agent distribution on the API server
+
+LH-API serves the installer and immutable LH-Agent runtime from
+`/var/lib/legacy-hosting/agent-distributions/current`. Promote a verified
+LH-Agent release on the API server with:
+
+```bash
+sudo scripts/install-agent-distribution.sh \
+  /path/to/lh-agent-1.0.0.tar.gz \
+  /path/to/lh-agent-1.0.0.tar.gz.sha256 \
+  1.0.0
+```
+
+Set `AGENT_DISTRIBUTION_DIRECTORY` in `/etc/legacy-hosting/api.env` to that
+`current` path. The script verifies the release checksum, extracts the
+installer, keeps earlier versions, and switches the active distribution with
+an atomic symlink replacement.

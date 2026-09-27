@@ -1,0 +1,13 @@
+/var/log/nginx/lh-*.access.log /var/log/nginx/lh-*.error.log {
+  daily
+  rotate 14
+  size 100M
+  missingok
+  notifempty
+  compress
+  delaycompress
+  sharedscripts
+  postrotate
+    test ! -s /run/nginx.pid || kill -USR1 "$(cat /run/nginx.pid)"
+  endscript
+}
