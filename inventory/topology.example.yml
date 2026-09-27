@@ -1,0 +1,36 @@
+version: 1
+
+networks:
+  ams3:
+    vpc: default-ams3
+    database_cluster: legacy-hosting
+  fra1:
+    vpc: default-fra1
+
+servers:
+  - hostname: ams3-api-01.legacyh.fyi
+    region: ams3
+    service: api
+    agent_mode: monitor-only
+    database_access: true
+  - hostname: ams3-panel-01.legacyh.fyi
+    region: ams3
+    service: panel
+    additional_processes: [discord]
+    agent_mode: monitor-only
+    database_access: false
+  - hostname: ams3-sso-01.legacyh.fyi
+    region: ams3
+    service: sso
+    agent_mode: monitor-only
+    database_access: true
+  - hostname: ams3-hub-01.legacyh.fyi
+    region: ams3
+    service: hub
+    agent_mode: monitor-only
+    database_access: false
+  - hostname: fra1-status-01.legacyh.fyi
+    region: fra1
+    service: status
+    agent_mode: monitor-only
+    database_access: false

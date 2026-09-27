@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+*.retry
+*.age
+*.pem
+*.key
+inventory/hosts.yml

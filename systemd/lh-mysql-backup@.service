@@ -1,0 +1,19 @@
+[Unit]
+Description=Legacy Hosting encrypted MySQL backup for %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/legacy-hosting-ops/backup-mysql.sh /etc/legacy-hosting/backups/%i.env
+User=root
+Group=root
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/legacy-hosting/mysql
+ReadOnlyPaths=/etc/legacy-hosting/backups /etc/ssl/certs
