@@ -6,6 +6,8 @@ baseline:
   pnpm: 12.4.1
   pm2: 7.0.4
   digitalocean_metrics_agent: required
+  certbot: required
+  swap_gib: 2
 
 networks:
   ams3:

@@ -10,8 +10,8 @@ if [[ ! -r /etc/os-release ]]; then
   exit 1
 fi
 . /etc/os-release
-if [[ ${ID:-} != ubuntu ]]; then
-  echo "Ubuntu is required" >&2
+if [[ ${ID:-} != ubuntu || ${VERSION_ID:-} != 26.04 ]]; then
+  echo "Ubuntu 26.04 LTS is required" >&2
   exit 1
 fi
 repository_root=$(cd "$(dirname "$0")/.." && pwd)
@@ -25,6 +25,7 @@ apt-get update
 apt-get install -y \
   age \
   ca-certificates \
+  certbot \
   curl \
   git \
   git-lfs \
@@ -33,6 +34,7 @@ apt-get install -y \
   logrotate \
   mysql-client \
   nginx \
+  python3-certbot-nginx \
   unattended-upgrades \
   xz-utils
 
@@ -42,7 +44,9 @@ install -d -m 0755 /opt/legacy-hosting /var/www
 install -m 0644 "$repository_root/logrotate/legacy-hosting" \
   /etc/logrotate.d/legacy-hosting
 systemctl enable --now nginx
+systemctl enable --now certbot.timer
 systemctl enable unattended-upgrades
+"$repository_root/scripts/ensure-swap.sh"
 
-echo "Common Ubuntu dependencies and protected directories are ready."
+echo "Common Ubuntu dependencies, TLS tooling, swap, and protected directories are ready."
 echo "Firewall and SSH policy were intentionally not changed by this script."
