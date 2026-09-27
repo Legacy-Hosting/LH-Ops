@@ -86,6 +86,12 @@ sudo scripts/audit-service-host.sh SERVICE --deploy-ready
 
 The certificate script automatically uses the standard Cloudflare credentials
 file when it exists. An explicit third argument can still select another file.
+Certificates issued for infrastructure names such as
+`ams3.api-01.legacyh.fyi` may coexist, but they do not cover
+`api.legacyhosting.xyz`, `panel.legacyhosting.xyz`,
+`auth.legacyhosting.xyz`, `hub.legacyhosting.xyz`, or
+`status.legacyhosting.xyz`. Each public Nginx endpoint must use a certificate
+whose names include that endpoint.
 
 If the public record already resolves directly to the new host, omit the
 credentials argument to use HTTP-01. The deployed Nginx sites preserve that

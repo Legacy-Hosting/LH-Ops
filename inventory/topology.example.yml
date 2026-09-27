@@ -12,9 +12,11 @@ baseline:
 networks:
   ams3:
     vpc: default-ams3
+    cidr: 10.18.0.0/20
     database_cluster: legacy-hosting
   fra1:
     vpc: default-fra1
+    cidr: 10.19.0.0/20
 
 servers:
   - hostname: ams3-api-01.legacyh.fyi

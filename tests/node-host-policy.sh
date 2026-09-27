@@ -21,6 +21,8 @@ grep -q 'snap install certbot-dns-cloudflare' "$setup"
 grep -q 'snap set certbot trust-plugin-with-root=ok' "$setup"
 grep -q '/root/.secrets/certbot/cloudflare.ini' "$setup"
 grep -q 'chmod 0600 "$cloudflare_credentials"' "$setup"
+grep -q 'private_cidr=10.18.0.0/20' "$repository_root/scripts/audit-service-host.sh"
+grep -q 'private_cidr=10.19.0.0/20' "$repository_root/scripts/audit-service-host.sh"
 if grep -Eq 'apt-get install.*certbot|^[[:space:]]+certbot[[:space:]]*\\' "$setup"; then
   echo "Certbot must be installed through Snap, not APT" >&2
   exit 1

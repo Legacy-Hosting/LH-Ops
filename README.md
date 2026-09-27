@@ -53,8 +53,8 @@ Replace `SERVICE` with `api`, `panel`, `sso`, `hub`, or `status`. Add
 backup prerequisites have been installed. Install both the API and Agent keys
 on the API host, and both the Panel and Discord keys on the Panel host.
 
-The bootstrap requires Ubuntu 26.04 LTS, installs Certbot with its Nginx and
-Cloudflare DNS plugins, and activates at least 2 GiB of persistent swap for the
+The bootstrap requires Ubuntu 26.04 LTS, installs Certbot and the Cloudflare
+DNS plugin through Snap, and activates at least 2 GiB of persistent swap for the
 1 GiB service Droplets. It detects the effective SSH port before enabling UFW,
 opens SSH plus HTTP/HTTPS, installs an isolated Fail2Ban SSH jail, and delegates
 the runtime installation to `install-node-runtime.sh`. The runtime installer
