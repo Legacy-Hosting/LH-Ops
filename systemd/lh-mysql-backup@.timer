@@ -4,6 +4,7 @@ Description=Daily Legacy Hosting encrypted MySQL backup for %i
 [Timer]
 OnCalendar=*-*-* 02:20:00 Europe/Oslo
 RandomizedDelaySec=20m
+AccuracySec=1m
 Persistent=true
 Unit=lh-mysql-backup@%i.service
 

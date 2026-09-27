@@ -41,7 +41,7 @@ The audit must pass before secrets or release archives are copied to the host.
 1. Create the isolated `legacyhosting_sso` database and user.
 2. Trust only `ams3-api-01` and `ams3-sso-01` in Managed MySQL.
 3. Copy the DigitalOcean database CA to API and SSO.
-4. Install encrypted API and SSO backup jobs and complete a restore drill.
+4. Install encrypted API and SSO backup jobs, verify each off-site Spaces object by SHA-256, and complete a named restore drill from the independent copy.
 5. Promote a verified LH-Agent release on API.
 6. Create protected service environment files with mode `0600`.
 7. Generate the SSO private JWKS directly on `ams3-sso-01`.

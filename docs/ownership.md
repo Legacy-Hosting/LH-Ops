@@ -6,7 +6,7 @@
 - infrastructure inventory without credentials;
 - future Terraform and Ansible code;
 - DigitalOcean/VPC/firewall and Monitoring Agent policy;
-- generic encrypted MySQL backup and restore-drill tooling;
+- generic age-encrypted MySQL backup, verified off-site retention, and audited restore-drill tooling;
 - promotion of signed-off LH-Agent releases to the API distribution directory;
 - disaster-recovery orchestration and cross-service smoke checks.
 

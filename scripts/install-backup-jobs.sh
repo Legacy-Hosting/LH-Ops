@@ -6,6 +6,12 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 repository_root=$(cd "$(dirname "$0")/.." && pwd)
+for command in age flock gzip mysqldump rclone sha256sum; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    echo "Install the required backup command before continuing: $command" >&2
+    exit 1
+  fi
+done
 for path in \
   scripts/backup-mysql.sh \
   scripts/restore-drill.sh \
@@ -18,7 +24,9 @@ for path in \
 done
 
 install -d -m 0755 /usr/local/lib/legacy-hosting-ops
-install -d -m 0700 /etc/legacy-hosting/backups /var/backups/legacy-hosting/mysql
+install -d -m 0700 /etc/legacy-hosting/backups /etc/legacy-hosting/restore \
+  /var/backups/legacy-hosting/mysql
+install -d -m 0750 /var/log/legacy-hosting
 install -m 0755 "$repository_root/scripts/backup-mysql.sh" \
   /usr/local/lib/legacy-hosting-ops/backup-mysql.sh
 install -m 0755 "$repository_root/scripts/restore-drill.sh" \

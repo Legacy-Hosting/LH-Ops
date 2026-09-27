@@ -196,8 +196,13 @@ if [[ $mode == --deploy-ready ]]; then
     fi
   fi
   if [[ -n $backup_name ]]; then
+    backup_environment=/etc/legacy-hosting/backups/$backup_name.env
+    backup_mode=$(stat -c '%a' "$backup_environment" 2>/dev/null || true)
+    backup_owner=$(stat -c '%u' "$backup_environment" 2>/dev/null || true)
     if [[ -x /usr/local/lib/legacy-hosting-ops/backup-mysql.sh && \
-          -f /etc/legacy-hosting/backups/$backup_name.env ]]; then
+          -f $backup_environment && $backup_mode == 600 && $backup_owner == 0 ]] && \
+       command -v age >/dev/null 2>&1 && command -v rclone >/dev/null 2>&1 && \
+       systemctl is-enabled --quiet "lh-mysql-backup@$backup_name.timer"; then
       pass "$backup_name backup prerequisite is installed"
     else
       fail "$backup_name backup prerequisite is missing"

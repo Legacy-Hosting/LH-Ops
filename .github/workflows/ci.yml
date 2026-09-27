@@ -19,6 +19,10 @@ jobs:
         run: bash -n scripts/*.sh
       - name: Run ShellCheck
         run: shellcheck --severity=error scripts/*.sh
+      - name: Check backup security policy
+        run: bash tests/backup-policy.sh
+      - name: Exercise encrypted backup and restore flow
+        run: sudo bash tests/backup-integration.sh
       - name: Check executable scripts
         run: test "$(find scripts -maxdepth 1 -type f -name '*.sh' ! -perm -111 | wc -l)" -eq 0
       - name: Reject committed secret-shaped files

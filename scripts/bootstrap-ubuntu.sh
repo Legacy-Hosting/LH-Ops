@@ -36,6 +36,7 @@ apt-get install -y \
   nginx \
   python3-certbot-dns-cloudflare \
   python3-certbot-nginx \
+  rclone \
   unattended-upgrades \
   xz-utils
 
