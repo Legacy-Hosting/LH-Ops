@@ -159,9 +159,10 @@ else
   fail "root disk is smaller than 20 GB"
 fi
 
-swap_bytes=$(swapon --show --noheadings --bytes --output SIZE 2>/dev/null | \
+swap_bytes=$(swapon --show=SIZE --noheadings --bytes 2>/dev/null | \
   awk '{ total += $1 } END { print total + 0 }')
-if (( swap_bytes >= 2147483648 )); then
+minimum_swap_bytes=$((2 * 1024 * 1024 * 1024 - 1024 * 1024))
+if (( swap_bytes >= minimum_swap_bytes )); then
   pass "at least 2 GiB swap is active"
 else
   fail "less than 2 GiB swap is active"

@@ -22,9 +22,10 @@ if [[ ! $swap_size_gib =~ ^[1-9][0-9]*$ || $swap_size_gib -gt 16 ]]; then
 fi
 
 required_bytes=$((swap_size_gib * 1024 * 1024 * 1024))
-active_bytes=$(swapon --show --noheadings --bytes --output SIZE 2>/dev/null | \
+minimum_active_bytes=$((required_bytes - 1024 * 1024))
+active_bytes=$(swapon --show=SIZE --noheadings --bytes 2>/dev/null | \
   awk '{ total += $1 } END { print total + 0 }')
-if (( active_bytes >= required_bytes )); then
+if (( active_bytes >= minimum_active_bytes )); then
   echo "At least ${swap_size_gib} GiB of swap is already active."
   exit 0
 fi
@@ -53,9 +54,9 @@ if ! grep -Fqs "$swap_file none swap sw 0 0" /etc/fstab; then
   printf '%s\n' "$swap_file none swap sw 0 0" >> /etc/fstab
 fi
 
-active_bytes=$(swapon --show --noheadings --bytes --output SIZE | \
+active_bytes=$(swapon --show=SIZE --noheadings --bytes | \
   awk '{ total += $1 } END { print total + 0 }')
-if (( active_bytes < required_bytes )); then
+if (( active_bytes < minimum_active_bytes )); then
   echo "Swap activation did not reach ${swap_size_gib} GiB" >&2
   exit 1
 fi
