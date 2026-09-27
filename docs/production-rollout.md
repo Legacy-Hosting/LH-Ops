@@ -16,11 +16,11 @@ Compare that SHA-256 fingerprint with a local `ssh-keyscan` result. Add the key
 to `known_hosts` only after an exact match. This is required once for:
 
 ```text
-ams3-api-01.legacyh.fyi
-ams3-panel-01.legacyh.fyi
-ams3-sso-01.legacyh.fyi
-ams3-hub-01.legacyh.fyi
-fra1-status-01.legacyh.fyi
+ams3.api-01.legacyh.fyi
+ams3.panel-01.legacyh.fyi
+ams3.sso-01.legacyh.fyi
+ams3.hub-01.legacyh.fyi
+fra1.status-01.legacyh.fyi
 ```
 
 ## 2. Bootstrap and audit

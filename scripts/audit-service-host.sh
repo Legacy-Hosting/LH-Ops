@@ -17,8 +17,8 @@ case $service in
   api)
     expected_hostname=ams3-api-01
     public_domain=api.legacyhosting.xyz
-    private_prefix_regex='^10\.18\.([0-9]{1,2})\.[0-9]{1,3}$'
-    private_cidr=10.18.0.0/20
+    private_prefix_regex='^10\.110\.([0-9]{1,2})\.[0-9]{1,3}$'
+    private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/api.env
     backup_name=api
     release_keys=(lh-api.pub lh-agent.pub)
@@ -26,8 +26,8 @@ case $service in
   panel)
     expected_hostname=ams3-panel-01
     public_domain=panel.legacyhosting.xyz
-    private_prefix_regex='^10\.18\.([0-9]{1,2})\.[0-9]{1,3}$'
-    private_cidr=10.18.0.0/20
+    private_prefix_regex='^10\.110\.([0-9]{1,2})\.[0-9]{1,3}$'
+    private_cidr=10.110.0.0/20
     environment_file=
     backup_name=
     release_keys=(lh-panel.pub lh-discord.pub)
@@ -35,8 +35,8 @@ case $service in
   sso)
     expected_hostname=ams3-sso-01
     public_domain=auth.legacyhosting.xyz
-    private_prefix_regex='^10\.18\.([0-9]{1,2})\.[0-9]{1,3}$'
-    private_cidr=10.18.0.0/20
+    private_prefix_regex='^10\.110\.([0-9]{1,2})\.[0-9]{1,3}$'
+    private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/sso.env
     backup_name=sso
     release_keys=(lh-sso.pub)
@@ -44,8 +44,8 @@ case $service in
   hub)
     expected_hostname=ams3-hub-01
     public_domain=hub.legacyhosting.xyz
-    private_prefix_regex='^10\.18\.([0-9]{1,2})\.[0-9]{1,3}$'
-    private_cidr=10.18.0.0/20
+    private_prefix_regex='^10\.110\.([0-9]{1,2})\.[0-9]{1,3}$'
+    private_cidr=10.110.0.0/20
     environment_file=/etc/legacy-hosting/hub.env
     backup_name=
     release_keys=(lh-hub.pub)
@@ -53,8 +53,8 @@ case $service in
   status)
     expected_hostname=fra1-status-01
     public_domain=status.legacyhosting.xyz
-    private_prefix_regex='^10\.19\.([0-9]{1,2})\.[0-9]{1,3}$'
-    private_cidr=10.19.0.0/20
+    private_prefix_regex='^10\.114\.([0-9]{1,2})\.[0-9]{1,3}$'
+    private_cidr=10.114.0.0/20
     environment_file=/etc/legacy-hosting/status.env
     backup_name=
     release_keys=(lh-status.pub)
