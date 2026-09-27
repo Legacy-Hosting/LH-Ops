@@ -80,6 +80,17 @@ The command keeps a one-time `/etc/hosts.pre-lh-status-direct` backup, replaces
 only its managed block, verifies every lookup, and restarts LH-Status when it
 is already running.
 
+Hub and LH-Discord use the same direct-origin policy for internal latency and
+status notifications:
+
+```bash
+sudo scripts/configure-direct-service-probes.sh lh-hub \
+  API_ORIGIN_IPV4 SSO_ORIGIN_IPV4 HUB_ORIGIN_IPV4 PANEL_ORIGIN_IPV4 STATUS_ORIGIN_IPV4
+```
+
+Run the same command with `lh-discord` on the panel server after the bot
+service is installed.
+
 For the first SSO installation, create the isolated database from the existing
 API host and transfer the generated mode-`0600` database fragment directly to
 the SSO host. Then generate SSO secrets and the private JWKS on that host:
