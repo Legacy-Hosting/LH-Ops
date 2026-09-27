@@ -97,8 +97,16 @@ The command preserves the rollback copy, replaces only the database CA path,
 adds the verified Agent distribution path and SSO settings, consumes the SSO
 fragment, and refuses to overwrite an active API environment.
 
-Create a mode-`0600` Spaces input on each database service host without
-passing its contents through shell history or chat:
+Create a bucket-limited Spaces key with Read/Write/Delete access, then capture
+it through a hidden terminal prompt on each database service host. This writes
+the input with mode `0600` without passing its contents through shell history
+or chat:
+
+```bash
+sudo scripts/configure-spaces-backup-credentials.sh legacy-hosting-backups
+```
+
+The resulting protected file has this structure:
 
 ```ini
 BACKUP_S3_ENDPOINT=ams3.digitaloceanspaces.com
