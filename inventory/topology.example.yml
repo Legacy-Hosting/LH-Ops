@@ -1,5 +1,12 @@
 version: 1
 
+baseline:
+  operating_system: ubuntu-26.04-lts
+  node: 24.21.0
+  pnpm: 12.4.1
+  pm2: 7.0.4
+  digitalocean_metrics_agent: required
+
 networks:
   ams3:
     vpc: default-ams3

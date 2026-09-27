@@ -27,11 +27,14 @@ apt-get install -y \
   ca-certificates \
   curl \
   git \
+  git-lfs \
+  gnupg \
   jq \
   logrotate \
   mysql-client \
   nginx \
-  unattended-upgrades
+  unattended-upgrades \
+  xz-utils
 
 install -d -m 0700 /etc/legacy-hosting /etc/legacy-hosting/backups
 install -d -m 0700 /var/backups/legacy-hosting/mysql
