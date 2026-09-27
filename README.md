@@ -66,9 +66,9 @@ LH-Agent release on the API server with:
 
 ```bash
 sudo scripts/install-agent-distribution.sh \
-  /path/to/lh-agent-1.0.0.tar.gz \
-  /path/to/lh-agent-1.0.0.tar.gz.sha256 \
-  1.0.0
+  /path/to/lh-agent-1.0.32.tar.gz \
+  /path/to/lh-agent-1.0.32.tar.gz.sha256 \
+  1.0.32
 ```
 
 Set `AGENT_DISTRIBUTION_DIRECTORY` in `/etc/legacy-hosting/api.env` to that
