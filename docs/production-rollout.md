@@ -57,6 +57,16 @@ online server and are recorded in the audit log.
 6. Create protected service environment files with mode `0600`.
 7. Generate the SSO private JWKS directly on `ams3-sso-01`.
 
+Create the initial Status environment and VAPID key pair directly on
+`fra1-status-01`; the generated private key is never printed or transferred:
+
+```bash
+sudo node scripts/provision-status-environment.mjs
+```
+
+The command refuses to overwrite an existing environment file. Back up and
+review an existing `/etc/legacy-hosting/status.env` instead of deleting it.
+
 Do not place database credentials on Panel, Hub, Status, or Discord.
 
 ## 4. Issue origin certificates
