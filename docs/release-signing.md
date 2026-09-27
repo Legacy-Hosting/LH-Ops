@@ -13,21 +13,40 @@ not authorize releases for another service.
 
 ## Key custody
 
-Generate each key pair on a separate trusted operator machine with a restrictive
-umask:
+Generate each key pair on a separate trusted operator machine. First create or
+select an offline `age` identity and a mode-`0700` output directory on its
+encrypted storage. Then run:
 
 ```bash
-umask 077
-openssl genpkey -algorithm Ed25519 -out lh-api-release-private.pem
-openssl pkey -in lh-api-release-private.pem -pubout -out lh-api-release.pub
-openssl pkey -pubin -in lh-api-release.pub -outform DER \
-  | sha256sum
+scripts/generate-release-key-material.sh \
+  api AGE_RECIPIENT /encrypted/offline/release-keys
 ```
 
-Store the private key as the repository Actions secret
-`RELEASE_SIGNING_PRIVATE_KEY_B64`, encoded with `base64 -w0`. Keep an encrypted
-offline recovery copy outside GitHub and production hosts. Never commit the
-private key. Commit only the public key and its reviewed SHA-256 fingerprint.
+The script never writes an unencrypted private key outside its temporary
+workspace. It creates `lh-api-release-private.pem.age`, `lh-api.pub`, and
+`lh-api.pub.sha256`; refuses insecure output-directory permissions, symlinks,
+and overwrites; and signs a challenge before accepting the generated key.
+
+After independently reviewing the public-key fingerprint, decrypt the private
+key only on the trusted operator machine and pipe its base64 representation
+directly into the repository secret:
+
+```bash
+temporary_key=$(mktemp)
+trap 'rm -f -- "$temporary_key"' EXIT
+chmod 0600 "$temporary_key"
+age --decrypt --identity /offline/recovery-identity.txt \
+  --output "$temporary_key" \
+  /encrypted/offline/release-keys/lh-api-release-private.pem.age
+base64 -w0 < "$temporary_key" | \
+  gh secret set RELEASE_SIGNING_PRIVATE_KEY_B64 \
+    --repo Legacy-Hosting/LH-API
+```
+
+Repeat with a different key for every service. Keep each encrypted recovery
+copy outside GitHub and production hosts. Never commit private keys or
+encrypted recovery keys. Commit only the public key and its independently
+reviewed SHA-256 fingerprint.
 
 Install the service public key as a root-owned mode-`0644` file below
 `/etc/legacy-hosting/release-keys`. Deployment must use the copy provisioned by

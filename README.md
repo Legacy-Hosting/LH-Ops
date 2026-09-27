@@ -30,6 +30,9 @@ filename, and archive before extraction. Each service uses an independent
 private key held by its release workflow. Key generation, custody, rotation,
 and server provisioning are documented in
 [`docs/release-signing.md`](docs/release-signing.md).
+`scripts/generate-release-key-material.sh` creates one independently encrypted
+recovery key, public key, and reviewed fingerprint at a time without leaving a
+plaintext private key in the destination.
 
 ## Service host bootstrap
 

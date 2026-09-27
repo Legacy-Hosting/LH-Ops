@@ -28,6 +28,11 @@ jobs:
         run: bash tests/load-test-policy.sh
       - name: Exercise release signing and verification
         run: sudo bash tests/release-signing-integration.sh
+      - name: Exercise encrypted release-key generation
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes age
+          bash tests/release-key-material-integration.sh
       - name: Exercise encrypted backup and restore flow
         run: sudo bash tests/backup-integration.sh
       - name: Exercise persistent-file backup and staged restore
