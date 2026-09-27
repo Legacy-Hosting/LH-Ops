@@ -82,6 +82,21 @@ and writes separate protected fragments for API, Hub, and Discord below
 `/etc/legacy-hosting/service-fragments`. Transfer each fragment only to its
 own service host and delete the transferred copy after it has been consumed.
 
+After copying the legacy API environment to the new API host as a protected
+rollback copy, activate it with the SSO fragment without editing either secret
+file interactively:
+
+```bash
+sudo node scripts/activate-migrated-api-environment.mjs \
+  /etc/legacy-hosting/api.env.legacy-migrated \
+  /etc/legacy-hosting/api-sso.env.fragment \
+  /etc/legacy-hosting/api.env
+```
+
+The command preserves the rollback copy, replaces only the database CA path,
+adds the verified Agent distribution path and SSO settings, consumes the SSO
+fragment, and refuses to overwrite an active API environment.
+
 Do not place database credentials on Panel, Hub, Status, or Discord.
 
 ## 4. Issue origin certificates
