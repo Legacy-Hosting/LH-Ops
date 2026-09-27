@@ -67,6 +67,19 @@ sudo node scripts/provision-status-environment.mjs
 The command refuses to overwrite an existing environment file. Back up and
 review an existing `/etc/legacy-hosting/status.env` instead of deleting it.
 
+On the Status host, make the three public probe names resolve directly to
+their AMS3 origin IPv4 addresses. HTTPS still validates the public service
+names, while measurements bypass the Cloudflare proxy:
+
+```bash
+sudo scripts/configure-status-direct-probes.sh \
+  API_ORIGIN_IPV4 SSO_ORIGIN_IPV4 PANEL_ORIGIN_IPV4
+```
+
+The command keeps a one-time `/etc/hosts.pre-lh-status-direct` backup, replaces
+only its managed block, verifies every lookup, and restarts LH-Status when it
+is already running.
+
 For the first SSO installation, create the isolated database from the existing
 API host and transfer the generated mode-`0600` database fragment directly to
 the SSO host. Then generate SSO secrets and the private JWKS on that host:

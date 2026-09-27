@@ -24,10 +24,9 @@ mkdirSync(environmentDirectory, { recursive: true, mode: 0o755 });
 const vapid = createECDH("prime256v1");
 vapid.generateKeys();
 const components = [
-  { key: "panel", name: "Control panel", url: "https://panel.legacyhosting.xyz/" },
   { key: "api", name: "API", url: "https://api.legacyhosting.xyz/health" },
-  { key: "identity", name: "Identity", url: "https://auth.legacyhosting.xyz/health" },
-  { key: "hub", name: "Staff Hub", url: "https://hub.legacyhosting.xyz/health" },
+  { key: "sso", name: "SSO", url: "https://auth.legacyhosting.xyz/health" },
+  { key: "panel", name: "Web Panel", url: "https://panel.legacyhosting.xyz/" },
 ];
 const allowedPushHosts = [
   "fcm.googleapis.com",
@@ -43,6 +42,7 @@ const lines = [
   "STATUS_PUBLIC_ORIGIN=https://status.legacyhosting.xyz",
   `STATUS_COMPONENTS='${JSON.stringify(components)}'`,
   "STATUS_DATA_FILE=/var/lib/legacy-hosting-status/status-snapshot.json",
+  "STATUS_HISTORY_FILE=/var/lib/legacy-hosting-status/status-history.ndjson",
   "STATUS_EVENTS_FILE=/var/lib/legacy-hosting-status/status-events.json",
   "STATUS_PUSH_STATE_FILE=/var/lib/legacy-hosting-status/push-state.json",
   "STATUS_PUSH_VAPID_SUBJECT=mailto:status@legacyhosting.xyz",
