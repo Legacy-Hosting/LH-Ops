@@ -297,7 +297,18 @@ fail2ban-client -t
 systemctl enable fail2ban
 systemctl restart fail2ban
 systemctl is-active --quiet fail2ban || die "Fail2Ban startet ikke. Kontroller journalctl -u fail2ban."
-fail2ban-client status sshd >/dev/null || die "Fail2Ban-jailen sshd er ikke aktiv."
+fail2ban_ready=false
+for ((attempt = 1; attempt <= 20; attempt++)); do
+  if fail2ban-client ping >/dev/null 2>&1 &&
+     fail2ban-client status sshd >/dev/null 2>&1; then
+    fail2ban_ready=true
+    break
+  fi
+  sleep 0.5
+done
+if [[ $fail2ban_ready != true ]]; then
+  die "Fail2Ban-jailen sshd ble ikke klar innen 10 sekunder."
+fi
 
 echo "=========================================================="
 echo "[Vellykket] Den nye serveren er ferdig klargjort."
