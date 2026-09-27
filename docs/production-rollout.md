@@ -97,6 +97,30 @@ The command preserves the rollback copy, replaces only the database CA path,
 adds the verified Agent distribution path and SSO settings, consumes the SSO
 fragment, and refuses to overwrite an active API environment.
 
+Create a mode-`0600` Spaces input on each database service host without
+passing its contents through shell history or chat:
+
+```ini
+BACKUP_S3_ENDPOINT=ams3.digitaloceanspaces.com
+BACKUP_S3_BUCKET=replace-with-private-bucket
+BACKUP_S3_PREFIX=legacy-hosting/mysql
+BACKUP_S3_ACCESS_KEY_ID=replace-with-spaces-key
+BACKUP_S3_SECRET_ACCESS_KEY=replace-with-spaces-secret
+```
+
+After installing the public backup recipient, derive the protected service
+backup environment without duplicating database credentials manually:
+
+```bash
+sudo node scripts/provision-mysql-backup-environment.mjs \
+  api /etc/legacy-hosting/api.env /root/.secrets/spaces-backup.env \
+  /etc/legacy-hosting/backups/backup-recipient.txt
+```
+
+Use `sso` and `/etc/legacy-hosting/sso.env` on the SSO host. Run one manual
+backup and verify the uploaded encrypted object before enabling
+`lh-mysql-backup@api.timer` or `lh-mysql-backup@sso.timer`.
+
 Do not place database credentials on Panel, Hub, Status, or Discord.
 
 ## 4. Issue origin certificates
