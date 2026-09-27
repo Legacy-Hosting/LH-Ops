@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Legacy Hosting persistent-file backup for %i
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+RandomizedDelaySec=45m
+Persistent=true
+Unit=lh-application-backup@%i.service
+
+[Install]
+WantedBy=timers.target

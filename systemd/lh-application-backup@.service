@@ -1,0 +1,31 @@
+[Unit]
+Description=Legacy Hosting encrypted persistent-file backup for %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/legacy-hosting-ops/backup-application-files.sh /etc/legacy-hosting/application-backups/%i.env
+UMask=0077
+User=root
+Group=root
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictNamespaces=true
+SystemCallArchitectures=native
+ReadOnlyPaths=/etc/legacy-hosting/application-backups /home
+ReadWritePaths=/var/backups/legacy-hosting/applications /var/log/legacy-hosting /run/lock
+
+[Install]
+WantedBy=multi-user.target

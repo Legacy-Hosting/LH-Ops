@@ -1,0 +1,4 @@
+# Copy only the paths configured as persistent in LH-Panel. Database files,
+# sockets, caches, node_modules, tmp, and temp paths are rejected.
+file:var/secrets/settings.key
+directory:var/uploads

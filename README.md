@@ -106,6 +106,64 @@ tables, writes a secret-free JSONL result to
 `/var/log/legacy-hosting/restore-drills.jsonl`, and drops only its generated
 disposable database.
 
+## Customer persistent-file backups
+
+Persistent application data is backed up on hosting nodes, independently of
+the control-plane database. Opt-in is explicit: an application is protected
+only after Infrastructure installs a root-owned mode-`0600` environment file
+and path allowlist from `env/application-backup.env.example` and
+`env/application.paths.example`, then enables its timer instance:
+
+```bash
+sudo scripts/install-backup-jobs.sh
+sudo systemctl start lh-application-backup@APPLICATION.service
+sudo systemctl enable --now lh-application-backup@APPLICATION.timer
+```
+
+The allowlist must exactly match the application's `file:` and `directory:`
+entries in LH-Panel. The job rejects absolute paths, traversal, symlinks in any
+path component, sockets/devices, database files, caches, `node_modules`, and
+temporary paths. A root-only snapshot is compressed, encrypted with the public
+`age` recipient, uploaded to a private FRA1 Spaces bucket, and read back for
+SHA-256 verification. The private `age` identity never belongs in the daily
+backup configuration or on the Spaces account.
+
+Initial retention is 2 days locally, 35 daily copies, 12 monthly copies, and 3
+yearly copies off-site. Successful backups, retention deletions, failed jobs,
+staging, and live restores are recorded without secrets in
+`/var/log/legacy-hosting/application-backups.jsonl`.
+
+Restore is intentionally two-step. Download the selected encrypted archive and
+its checksum into `/var/backups/legacy-hosting/applications/APPLICATION_ID`,
+install a temporary mode-`0600` restore configuration based on
+`env/application-restore.env.example`, and stage it first:
+
+```bash
+sudo env LH_RESTORE_OPERATOR=operator@example.com \
+  /usr/local/lib/legacy-hosting-ops/stage-application-restore.sh \
+  /etc/legacy-hosting/application-backups/APPLICATION-restore.env \
+  /var/backups/legacy-hosting/applications/APPLICATION_ID/APPLICATION-TIMESTAMP.tar.gz.age
+```
+
+Staging verifies the checksum, decrypts, validates the manifest and current
+allowlist, rejects unsafe archive members and symlinks, and does not touch live
+data. After reviewing the staged restore, apply it with an explicit application
+ID confirmation:
+
+```bash
+sudo env LH_RESTORE_OPERATOR=operator@example.com \
+  LH_RESTORE_CONFIRM=APPLICATION_ID \
+  /usr/local/lib/legacy-hosting-ops/apply-application-restore.sh \
+  /etc/legacy-hosting/application-backups/APPLICATION-restore.env \
+  /var/lib/legacy-hosting/application-restores/APPLICATION_ID/STAGING_NAME
+```
+
+Apply stops only the configured PM2 processes, takes a local pre-restore copy,
+replaces each allowlisted path, and restarts those processes. A failed apply
+restores already changed paths from that copy. Successful pre-restore copies
+are kept locally for 7 days. Remove the temporary private identity and restore
+environment immediately after the operation.
+
 ## Agent distribution on the API server
 
 LH-API serves the installer and immutable LH-Agent runtime from
