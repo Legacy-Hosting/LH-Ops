@@ -117,8 +117,11 @@ uploads the encrypted file and checksum to a private DigitalOcean Spaces bucket
 through `rclone`, reads the remote object back to verify its SHA-256 hash, and
 fails the systemd unit if off-site verification does not pass. Credentials are
 provided to rclone through its environment-based remote configuration and do
-not appear in command arguments. Use a separate scoped Spaces key and bucket
-for API and SSO in FRA1, outside the AMS3 database failure region.
+not appear in command arguments. The production key is limited to
+Read/Write/Delete on the private backup bucket; rclone skips bucket-management
+probes that are intentionally unavailable to a bucket-scoped key. API and SSO
+use separate object prefixes. A second copy outside AMS3 remains part of the
+regional disaster-recovery plan.
 
 The database backup users need only `SELECT`, `SHOW VIEW`, and `TRIGGER` on
 their own database. They must not receive write access, global privileges, or
