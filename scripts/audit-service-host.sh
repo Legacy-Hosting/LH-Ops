@@ -94,13 +94,18 @@ else
   fail "no private address belongs to $private_cidr"
 fi
 
-for command in certbot curl git jq nginx node pm2 pnpm sha256sum tar; do
+for command in certbot curl git jq nginx node pm2 pnpm python3 sha256sum tar; do
   if command -v "$command" >/dev/null 2>&1; then
     pass "$command is installed"
   else
     fail "$command is not installed"
   fi
 done
+if python3 -c 'import certbot_dns_cloudflare' >/dev/null 2>&1; then
+  pass "Certbot Cloudflare DNS plugin is installed"
+else
+  fail "Certbot Cloudflare DNS plugin is not installed"
+fi
 
 if [[ $(node --version 2>/dev/null || true) == v24.21.0 ]]; then
   pass "Node.js 24.21.0"

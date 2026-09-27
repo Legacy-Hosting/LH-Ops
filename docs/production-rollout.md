@@ -50,17 +50,30 @@ Do not place database credentials on Panel, Hub, Status, or Discord.
 
 ## 4. Issue origin certificates
 
-Point each public DNS record at its new host before requesting its certificate.
-If Cloudflare proxying prevents the HTTP-01 challenge, temporarily set only
-that record to DNS-only, issue the certificate, then restore the proxy.
+Issue certificates before changing public traffic. Create a Cloudflare API
+token restricted to DNS edit access for only the `legacyhosting.xyz` zone,
+then store it independently on each service host:
+
+```ini
+dns_cloudflare_api_token = replace-with-scoped-token
+```
+
+Protect the file with mode `0600`. Certbot stores its path for unattended
+renewal, so retain it until that certificate is replaced with another renewal
+method.
 
 ```bash
-sudo scripts/issue-service-certificate.sh SERVICE angel@legacyhosting.xyz
+sudo scripts/issue-service-certificate.sh \
+  SERVICE \
+  angel@legacyhosting.xyz \
+  /etc/legacy-hosting/cloudflare-acme.ini
 sudo scripts/audit-service-host.sh SERVICE --deploy-ready
 ```
 
-The deployed Nginx sites preserve the ACME challenge path on HTTP and HTTPS,
-so normal `certbot renew` runs can continue without taking the service down.
+If the public record already resolves directly to the new host, omit the
+credentials argument to use HTTP-01. The deployed Nginx sites preserve that
+challenge path on HTTP and HTTPS. Both methods configure normal unattended
+`certbot renew` runs without taking the service down.
 
 ## 5. Deploy in dependency order
 

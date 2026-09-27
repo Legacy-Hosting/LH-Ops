@@ -34,6 +34,7 @@ apt-get install -y \
   logrotate \
   mysql-client \
   nginx \
+  python3-certbot-dns-cloudflare \
   python3-certbot-nginx \
   unattended-upgrades \
   xz-utils

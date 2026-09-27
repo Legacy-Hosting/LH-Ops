@@ -35,7 +35,8 @@ Replace `SERVICE` with `api`, `panel`, `sso`, `hub`, or `status`. Add
 `--deploy-ready` after certificates, protected environment files, and database
 backup prerequisites have been installed.
 
-The bootstrap requires Ubuntu 26.04 LTS, installs Certbot with its Nginx plugin,
+The bootstrap requires Ubuntu 26.04 LTS, installs Certbot with its Nginx and
+Cloudflare DNS plugins,
 and activates at least 2 GiB of persistent swap for the 1 GiB service Droplets.
 The runtime installer downloads the [official Node.js 24.21.0 release](https://nodejs.org/dist/v24.21.0/) and verifies it against its official SHA-256 manifest before installing pnpm 12.4.1 and PM2 7.0.4. The monitoring installer follows DigitalOcean's [signed repository installation](https://docs.digitalocean.com/products/monitoring/how-to/install-metrics-agent-repository/), verifies the expected signing-key fingerprint, installs `do-agent`, and requires the service to be active. Firewall and SSH policy remain a separate reviewed operation because applying an incorrect rule remotely can lock out the server.
 

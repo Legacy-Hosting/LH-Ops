@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-if [[ ${EUID} -ne 0 || $# -ne 2 ]]; then
-  echo "Usage as root: $0 SERVICE ACME_EMAIL" >&2
+if [[ ${EUID} -ne 0 || $# -lt 2 || $# -gt 3 ]]; then
+  echo "Usage as root: $0 SERVICE ACME_EMAIL [CLOUDFLARE_CREDENTIALS_FILE]" >&2
   echo "SERVICE: api, panel, sso, hub, or status" >&2
   exit 2
 fi
 
 service=$1
 email=$2
+cloudflare_credentials=${3:-}
 case $service in
   api) domain=api.legacyhosting.xyz ;;
   panel) domain=panel.legacyhosting.xyz ;;
@@ -40,25 +41,57 @@ for command in certbot curl nginx; do
   fi
 done
 
-expected_public_ipv4=$(getent ahostsv4 "$domain" | awk '{ print $1 }' | sort -u)
-local_public_ipv4=$(curl --fail --silent --show-error --ipv4 \
-  --connect-timeout 5 https://api.ipify.org)
-if [[ -z $expected_public_ipv4 ]] || \
-   ! grep -Fxq "$local_public_ipv4" <<< "$expected_public_ipv4"; then
-  echo "$domain does not resolve to this host ($local_public_ipv4)" >&2
-  echo "Point the DNS record at this host before requesting a certificate." >&2
-  exit 1
-fi
-
 webroot=/var/lib/letsencrypt
 temporary_site=/etc/nginx/sites-available/lh-acme-bootstrap.conf
 temporary_link=/etc/nginx/sites-enabled/lh-acme-bootstrap.conf
-if [[ -e $temporary_site || -L $temporary_link ]]; then
-  echo "Temporary ACME Nginx configuration already exists" >&2
-  exit 1
-fi
-install -d -m 0755 "$webroot/.well-known/acme-challenge"
-cat > "$temporary_site" <<EOF
+certbot_arguments=(
+  certonly
+  --non-interactive
+  --agree-tos
+  --no-eff-email
+  --keep-until-expiring
+  --cert-name "$domain"
+  --email "$email"
+  --deploy-hook "systemctl reload nginx"
+  --domain "$domain"
+)
+
+if [[ -n $cloudflare_credentials ]]; then
+  cloudflare_credentials=$(readlink -f "$cloudflare_credentials")
+  if [[ ! -f $cloudflare_credentials ]]; then
+    echo "Cloudflare credentials file was not found" >&2
+    exit 1
+  fi
+  credentials_mode=$(stat -c '%a' "$cloudflare_credentials")
+  if (( (8#$credentials_mode & 077) != 0 )); then
+    echo "$cloudflare_credentials must have mode 0600 or stricter" >&2
+    exit 1
+  fi
+  if ! grep -Eq '^dns_cloudflare_api_token[[:space:]]*=' "$cloudflare_credentials"; then
+    echo "$cloudflare_credentials must contain dns_cloudflare_api_token" >&2
+    exit 1
+  fi
+  certbot_arguments+=(
+    --dns-cloudflare
+    --dns-cloudflare-credentials "$cloudflare_credentials"
+    --dns-cloudflare-propagation-seconds 30
+  )
+else
+  expected_public_ipv4=$(getent ahostsv4 "$domain" | awk '{ print $1 }' | sort -u)
+  local_public_ipv4=$(curl --fail --silent --show-error --ipv4 \
+    --connect-timeout 5 https://api.ipify.org)
+  if [[ -z $expected_public_ipv4 ]] || \
+     ! grep -Fxq "$local_public_ipv4" <<< "$expected_public_ipv4"; then
+    echo "$domain does not resolve to this host ($local_public_ipv4)" >&2
+    echo "Use Cloudflare DNS credentials or point DNS at this host first." >&2
+    exit 1
+  fi
+  if [[ -e $temporary_site || -L $temporary_link ]]; then
+    echo "Temporary ACME Nginx configuration already exists" >&2
+    exit 1
+  fi
+  install -d -m 0755 "$webroot/.well-known/acme-challenge"
+  cat > "$temporary_site" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -74,28 +107,20 @@ server {
     }
 }
 EOF
-chmod 0644 "$temporary_site"
-ln -s "$temporary_site" "$temporary_link"
+  chmod 0644 "$temporary_site"
+  ln -s "$temporary_site" "$temporary_link"
 
-cleanup() {
-  rm -f -- "$temporary_link" "$temporary_site"
-  nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
-}
-trap cleanup EXIT
-nginx -t
-systemctl reload nginx
+  cleanup() {
+    rm -f -- "$temporary_link" "$temporary_site"
+    nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
+  }
+  trap cleanup EXIT
+  nginx -t
+  systemctl reload nginx
+  certbot_arguments+=(--webroot --webroot-path "$webroot")
+fi
 
-certbot certonly \
-  --non-interactive \
-  --agree-tos \
-  --no-eff-email \
-  --keep-until-expiring \
-  --cert-name "$domain" \
-  --email "$email" \
-  --webroot \
-  --webroot-path "$webroot" \
-  --deploy-hook "systemctl reload nginx" \
-  --domain "$domain"
+certbot "${certbot_arguments[@]}"
 
 for certificate_file in fullchain.pem privkey.pem; do
   if [[ ! -r /etc/letsencrypt/live/$domain/$certificate_file ]]; then
